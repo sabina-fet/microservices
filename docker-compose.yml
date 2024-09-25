@@ -1,0 +1,230 @@
+version: "2.4"
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+
+services:
+  neo4j:
+    image: neo4j
+    container_name: neo4j
+    ports:
+      - '7474:7474'
+      - '7687:7687'
+    volumes:
+      - ./db/neo4j_data:/data
+    environment:
+      - NEO4J_AUTH=none
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - '9100:9100'
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - '9090:9090'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      prometheus:
+        condition: service_started
+    volumes:
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - ./config/grafana.env
+    ports:
+      - '3000:3000'
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: broker
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  etcd1: &etcd
+    build: ./api/patroni
+    environment:
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_INITIAL_CLUSTER: etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: tutorial
+      ETCD_UNSUPPORTED_ARCH: arm64
+    container_name: etcd1
+    hostname: etcd1
+    command: etcd --name etcd1 --initial-advertise-peer-urls http://etcd1:2380
+
+  etcd2:
+    <<: *etcd
+    container_name: etcd2
+    hostname: etcd2
+    command: etcd --name etcd2 --initial-advertise-peer-urls http://etcd2:2380
+
+  etcd3:
+    <<: *etcd
+    container_name: etcd3
+    hostname: etcd3
+    command: etcd --name etcd3 --initial-advertise-peer-urls http://etcd3:2380
+
+  haproxy-patroni:
+    build: ./api/patroni
+    env_file: ./patroni_data/patroni.env
+    hostname: haproxy
+    container_name: haproxy-patroni
+    command: haproxy
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment: &haproxy_env
+      ETCDCTL_ENDPOINTS: http://etcd1:2379,http://etcd2:2379,http://etcd3:2379
+      PATRONI_ETCD3_HOSTS: "'etcd1:2379','etcd2:2379','etcd3:2379'"
+
+  patroni1:
+    build: ./api/patroni
+    env_file: ./patroni_data/patroni.env
+    hostname: patroni1
+    container_name: db-patroni1
+    environment:
+      <<: *haproxy_env
+      PATRONI_NAME: patroni1
+
+  patroni2:
+    build: ./api/patroni
+    env_file: ./patroni_data/patroni.env
+    hostname: patroni2
+    container_name: db-patroni2
+    environment:
+      <<: *haproxy_env
+      PATRONI_NAME: patroni2
+
+  patroni3:
+    build: ./api/patroni
+    env_file: ./patroni_data/patroni.env
+    hostname: patroni3
+    container_name: db-patroni3
+    environment:
+      <<: *haproxy_env
+      PATRONI_NAME: patroni3
+
+  neo4j-consumer:
+    build: ./k2n4j
+    container_name: neo4j-consumer
+    depends_on:
+      zookeeper:
+        condition: service_started
+      broker:
+        condition: service_started
+      neo4j:
+        condition: service_started
+
+  api1:
+    build: ./api
+    container_name: api1
+    depends_on:
+      haproxy-patroni:
+        condition: service_started
+      patroni1:
+        condition: service_started
+      patroni2:
+        condition: service_started
+      patroni3:
+        condition: service_started
+      etcd1:
+        condition: service_started
+      etcd2:
+        condition: service_started
+      etcd3:
+        condition: service_started
+
+  api2:
+    build: ./api
+    container_name: api2
+    depends_on:
+      haproxy-patroni:
+        condition: service_started
+      patroni1:
+        condition: service_started
+      patroni2:
+        condition: service_started
+      patroni3:
+        condition: service_started
+      etcd1:
+        condition: service_started
+      etcd2:
+        condition: service_started
+      etcd3:
+        condition: service_started
+
+  api3:
+    build: ./api
+    container_name: api3
+    depends_on:
+      haproxy-patroni:
+        condition: service_started
+      patroni1:
+        condition: service_started
+      patroni2:
+        condition: service_started
+      patroni3:
+        condition: service_started
+      etcd1:
+        condition: service_started
+      etcd2:
+        condition: service_started
+      etcd3:
+        condition: service_started
+
+  haproxy-api:
+    image: haproxy:latest
+    container_name: haproxy-api
+    ports:
+      - "80:80"
+    volumes:
+      - ./haproxy-api/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+    depends_on:
+      api1:
+        condition: service_started
+      api2:
+        condition: service_started
+      api3:
+        condition: service_started

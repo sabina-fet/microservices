@@ -1,0 +1,31 @@
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.form-row label {
+    display: inline-block;
+    font-size: 18px;
+    width: 90px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+.form-row input {
+    height: 20px;
+    min-width: 200px;
+}
+
+.form-container button {
+    height: 30px;
+    font-family: roboto, sans-serif;
+    font-size: 18px;
+    font-weight: normal;
+    color: #333;
+}

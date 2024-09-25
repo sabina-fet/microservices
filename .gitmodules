@@ -1,0 +1,3 @@
+[submodule "api/patroni"]
+	path = api/patroni
+	url = https://github.com/patroni/patroni.git

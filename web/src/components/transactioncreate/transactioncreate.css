@@ -1,0 +1,52 @@
+.transaction {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #d0d3d4;
+    font-size: 18px;
+}
+
+.transaction:nth-child(even) {
+    background-color: #e3ecec;
+}
+
+.transaction-item {
+
+}
+
+.big-plus {
+    color: green;
+    font-size: 1.5em; /* Adjust size as needed */
+    margin-right: 5px;
+}
+
+.big-minus {
+    color: red;
+    font-size: 1.5em;
+    margin-right: 5px;
+}
+
+.transaction-form .form-row {
+    display: flex;
+    width: 50%;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.transaction-form .form-row label {
+    display: inline-block;
+    font-size: 15px;
+    width: 90px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+.transaction-form .form-row input {
+    height: 25px;
+    min-width: 200px;
+    width: 100%;
+}
+
+.transaction-form .form-row.submit-btn {
+    justify-content: end;
+}

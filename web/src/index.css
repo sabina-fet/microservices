@@ -1,0 +1,24 @@
+body {
+    /*background-image: linear-gradient(to bottom left, #c8d8e4, white);*/
+    background-image: url("https://img.freepik.com/free-vector/white-color-background-gradient-abstract-modern_343694-2130.jpg?t=st=1727206708~exp=1727210308~hmac=b2fd93baf41cfb52e6bf78d568e9f4db5826a4aa694aec7bbece3892b0133bad&w=2000");
+    font-family: "Helvetica";
+    color: #333
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    margin: 0px;
+}
+
+.component {
+    box-sizing: border-box;
+    background-color: #fff;
+    width: 100%;
+    max-width: 1000px;
+    padding: 20px;
+    margin: 0px auto 40px auto;
+    border-radius: 5px;
+    box-shadow: 10px 5px 5px #c8d8e4;
+}

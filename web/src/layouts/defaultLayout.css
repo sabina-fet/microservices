@@ -1,0 +1,135 @@
+.default-layout {
+    height: 100%;
+    /*background: #F4F4F9;*/
+    display: flex;
+    flex-direction: column;
+}
+
+.header-navbar {
+    display: flex;
+    justify-content: center;
+    background-color: seagreen;
+    padding: 10px;
+    margin-bottom: 40px;
+}
+
+/*.header-navbar:hover {*/
+/*    cursor: pointer;*/
+/*}*/
+
+.header-navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.header-navbar-left,
+.header-navbar-right {
+    display: flex;
+}
+
+.nav-icon {
+    padding-right: 20px;
+    font-size: 20px;
+    color: #fff;
+}
+
+.nav-icon:hover {
+    cursor: pointer;
+}
+
+.nav-link-icon:hover {
+    cursor: pointer;
+}
+
+.nav-icon:last-child {
+    padding-right: 0px;
+}
+
+.logo-icon {
+    font-size: 40px;
+    color: #fff;
+}
+
+.page-navbar {
+    font-size: 18px;
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.account-selector {
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+    align-items: center;
+}
+
+.nav-link {
+    display: flex;
+    padding: 15px 25px;
+    border-radius: 4px 4px 0 0;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.5s ease;
+}
+
+.nav-link:hover {
+    background-color: #EBEDEF;
+}
+
+.nav-link.active {
+    background-color: #fff;
+}
+
+.nav-link-icon {
+    margin-right: 10px
+}
+
+.account-name {
+    margin-right: 10px;
+    border: solid 1px;
+    border-radius: 14px;
+    padding: 20px;
+    color: #333;
+    background-color: white;
+}
+
+.account-number {
+    font-size: x-large;
+}
+
+.account-name-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 80px;
+    font-size: larger;
+}
+
+.bank-name {
+    padding-top: 10px;
+    padding-left: 20px;
+    color: white;
+    font-size: x-large;
+}
+
+.user-name {
+    padding-right: 20px;
+    font-size: larger;
+    color: white;
+}
+
+.app-btn {
+    color: white;
+    background-color: seagreen;
+    height: 44px;
+    border: none;
+}
+
+.app-btn:hover {
+    cursor: pointer;
+}
